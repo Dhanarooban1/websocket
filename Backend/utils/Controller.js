@@ -245,17 +245,28 @@ export const selectPlayer = async (roomId, userSocketId, playerId) => {
     room.users[userIndex].team.push(selectedPlayer);
 
     // Move to next player
-    room.currentPlayerIndex = (room.currentPlayerIndex + 1) % room.turnOrder.length;
+   let nextPlayerFound = false;
+  let attempts = 0;
     
     // Check if current round is complete (everyone has selected once this round)
-    const maxTeamSize = Math.max(...room.users.map(u => u.team.length));
-    const minTeamSize = Math.min(...room.users.map(u => u.team.length));
-    
+    while (!nextPlayerFound && attempts < room.turnOrder.length) {
+      room.currentPlayerIndex = (room.currentPlayerIndex + 1) % room.turnOrder.length;
+      const nextPlayer = room.turnOrder[room.currentPlayerIndex];
+      const nextPlayerUser = room.users.find(u => u.socketId === nextPlayer.socketId);
+      
+      if (nextPlayerUser && nextPlayerUser.team.length < 5) {
+        nextPlayerFound = true;
+      }
+      attempts++;
+    }
     // If there's a difference in team sizes, continue with current round
     // Otherwise, check if we've reached 5 players per team
-    if (maxTeamSize >= 5) {
+     const allUsersComplete = room.users.every(user => user.team.length >= 5);
+    
+    if (allUsersComplete) {
       room.status = 'completed';
     }
+
 
     room.updatedAt = Date.now();
 
