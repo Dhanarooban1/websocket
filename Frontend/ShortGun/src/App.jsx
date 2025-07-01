@@ -8,8 +8,8 @@ import GameRoom from './components/GameRoom';
 import SelectionComplete from './components/SelectionComplete';
 import NotificationSystem from './components/NotificationSystem';
 
-const SOCKET_URL ='http://localhost:5000';
-  
+const SOCKET_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
 const App = () => {
   // Socket connection
   const [socket, setSocket] = useState(null);
