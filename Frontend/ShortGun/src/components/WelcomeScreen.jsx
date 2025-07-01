@@ -1,4 +1,4 @@
-import { Trophy } from 'lucide-react';
+import { Trophy, Users, Zap, RotateCcw, UserPlus, LogIn } from 'lucide-react';
 import PropTypes from 'prop-types';
 import ConnectionStatus from './ConnectionStatus';
 
@@ -15,20 +15,21 @@ const WelcomeScreen = ({
   error 
 }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform hover:scale-105 transition-transform duration-300">
-        {/* Connection Status */}
-        <div className="flex items-center justify-center mb-6">
-          <ConnectionStatus isConnected={isConnected} />
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex flex-col items-center justify-center p-4">
+      {/* Connection Status */}
+      <div className="absolute top-4 right-4">
+        <ConnectionStatus isConnected={isConnected} />
+      </div>
 
-        {/* Title */}
-        <div className="text-center mb-8">
-          <div className="p-4 bg-blue-100 rounded-full inline-block mb-4">
-            <Trophy className="w-16 h-16 text-blue-600" />
+      {/* Main Content Container */}
+      <div className="w-full max-w-lg">
+        {/* Title Section */}
+        <div className="text-center mb-12">
+          <div className="p-6 bg-green-500 rounded-full inline-block mb-6 shadow-lg">
+            <Trophy className="w-16 h-16 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Cricket Team Selection</h1>
-          <p className="text-gray-600">Build your dream cricket team in real-time!</p>
+          <h1 className="text-4xl font-bold text-gray-800 mb-3">Cricket Teams</h1>
+          <p className="text-lg text-gray-600">Real-time team selection experience</p>
         </div>
 
         {/* Error Display */}
@@ -40,44 +41,79 @@ const WelcomeScreen = ({
           </div>
         )}
 
-        {/* Name Input */}
-        <div className="mb-6">
-          <label className="block text-gray-700 text-sm font-semibold mb-2">
-            Your Name
-          </label>
-          <input
-            type="text"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-            placeholder="Enter your name"
-            disabled={!isConnected}
-            maxLength={20}
-          />
-        </div>
+        {/* Get Started Section */}
+        {!showJoinRoom && (
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <h2 className="text-2xl font-semibold text-gray-800 text-center mb-8">Get Started</h2>
+            
+            {/* Name Input */}
+            <div className="mb-6">
+              <label className="block text-gray-700 text-sm font-semibold mb-2">
+                Your Name
+              </label>
+              <input
+                type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                placeholder="Enter your name"
+                disabled={!isConnected}
+                maxLength={20}
+              />
+            </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-4">
-          <button
-            onClick={onCreateRoom}
-            disabled={!isConnected || !userName.trim()}
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-lg"
-          >
-            🏏 Create New Room
-          </button>
+            {/* Action Buttons */}
+            <div className="space-y-4">
+              <button
+                onClick={onCreateRoom}
+                disabled={!isConnected || !userName.trim()}
+                className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-lg flex items-center justify-center space-x-3"
+              >
+                <UserPlus className="w-5 h-5" />
+                <span>Create New Room</span>
+              </button>
 
-          <button
-            onClick={() => setShowJoinRoom(!showJoinRoom)}
-            disabled={!isConnected || !userName.trim()}
-            className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-lg"
-          >
-            🚪 Join Existing Room
-          </button>
-        </div>
+              <button
+                onClick={() => setShowJoinRoom(true)}
+                disabled={!isConnected || !userName.trim()}
+                className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-lg flex items-center justify-center space-x-3"
+              >
+                <LogIn className="w-5 h-5" />
+                <span>Join Existing Room</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Join Room Form */}
         {showJoinRoom && (
-          <div className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 animate-fade-in">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-gray-800">Create Room</h2>
+              <button
+                onClick={() => setShowJoinRoom(false)}
+                className="text-gray-500 hover:text-gray-700 text-sm"
+              >
+                ← Back
+              </button>
+            </div>
+            
+            {/* Name Input */}
+            <div className="mb-6">
+              <label className="block text-gray-700 text-sm font-semibold mb-2">
+                Your Name
+              </label>
+              <input
+                type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                placeholder="Enter your name"
+                disabled={!isConnected}
+                maxLength={20}
+              />
+            </div>
+
             <label className="block text-gray-700 text-sm font-semibold mb-2">
               Room ID
             </label>
@@ -85,24 +121,42 @@ const WelcomeScreen = ({
               type="text"
               value={roomId}
               onChange={(e) => setRoomId(e.target.value.toUpperCase())}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mb-3 font-mono text-center text-lg tracking-widest"
+              className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 mb-6 font-mono text-center text-lg tracking-widest"
               placeholder="ABC123"
               maxLength={6}
             />
             <button
               onClick={onJoinRoom}
-              disabled={!roomId.trim()}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 transform hover:scale-105 disabled:hover:scale-100"
+              disabled={!roomId.trim() || !userName.trim()}
+              className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-lg"
             >
-              Join Room
+              Create Room
             </button>
           </div>
         )}
 
-        {/* Footer */}
-        <div className="mt-8 text-center text-xs text-gray-500">
-          <p>Real-time multiplayer cricket team selection</p>
-          <p>Powered by Socket.IO</p>
+        {/* Features Section */}
+        <div className="flex justify-center space-x-12">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-2 mx-auto">
+              <Users className="w-6 h-6 text-green-600" />
+            </div>
+            <p className="text-sm text-gray-600 font-medium">Multiplayer</p>
+          </div>
+          
+          <div className="text-center">
+            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-2 mx-auto">
+              <Zap className="w-6 h-6 text-orange-600" />
+            </div>
+            <p className="text-sm text-gray-600 font-medium">Real-time</p>
+          </div>
+          
+          <div className="text-center">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2 mx-auto">
+              <RotateCcw className="w-6 h-6 text-blue-600" />
+            </div>
+            <p className="text-sm text-gray-600 font-medium">Turn-based</p>
+          </div>
         </div>
       </div>
     </div>

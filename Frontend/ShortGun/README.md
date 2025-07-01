@@ -5,7 +5,7 @@ A real-time multiplayer cricket team selection application built with React, Soc
 ## 🚀 Features
 
 - **Real-time Multiplayer**: Join rooms and see updates in real-time
-- **Turn-based Selection**: Organized turn order with 10-second timer per turn
+- **Turn-based Selection**: Host-first turn order with 10-second timer per turn
 - **Auto-selection**: Automatic player selection if time runs out
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
 - **Live Updates**: Real-time notifications and game state updates
@@ -58,7 +58,7 @@ The application will be available at `http://localhost:5173`
 4. Wait for the host to start the selection
 
 ### Team Selection Process
-1. Players take turns in a randomized order
+1. Players take turns with the host always going first, followed by others in randomized order
 2. Each player has 10 seconds to select a cricket player
 3. If time runs out, a player is auto-selected
 4. Continue until each player has 5 players

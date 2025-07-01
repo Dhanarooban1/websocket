@@ -26,36 +26,28 @@ export const setupSocket = (server) => {
     transports: ['websocket', 'polling']
   });
 
-  // Store active timers for auto-selection
+  
   const selectionTimers = new Map();
 
   io.on('connection', (socket) => {
     console.log(`👤 User connected: ${socket.id}`);
 
-    // Handle room creation
+  
+
+
     socket.on('create-room', async (data, callback) => {
       try {
         const { userName } = data;
-        
         if (!userName?.trim()) {
           return callback({ success: false, error: 'User name is required' });
         }
-
         const roomData = await createRoom(userName, socket.id);
-        
-        // Join the socket room
         await socket.join(roomData.roomId);
-        
-        console.log(`🏠 Room created: ${roomData.roomId} by ${userName}`);
-        
         callback({ 
           success: true, 
           roomId: roomData.roomId,
           room: roomData
         });
-
-        // Emit room update to all users in the room (including the host)
-        console.log(`📢 Broadcasting room creation to room ${roomData.roomId}, users count: ${roomData.users.length}`);
         io.to(roomData.roomId).emit('room-updated', roomData);
         
       } catch (error) {
@@ -64,7 +56,7 @@ export const setupSocket = (server) => {
       }
     });
 
-    // Handle joining room
+
     socket.on('join-room', async (data, callback) => {
       try {
         const { roomId, userName } = data;
@@ -74,8 +66,6 @@ export const setupSocket = (server) => {
         }
 
         const roomData = await joinRoom(roomId, userName, socket.id);
-        
-        // Join the socket room
         await socket.join(roomId);
         
         console.log(`👥 ${userName} joined room: ${roomId}`);
@@ -84,9 +74,6 @@ export const setupSocket = (server) => {
           success: true, 
           room: roomData
         });
-
-        // Notify all users in the room about the updated room state
-        console.log(`📢 Broadcasting room update to room ${roomId}, users count: ${roomData.users.length}`);
         io.to(roomId).emit('room-updated', roomData);
         io.to(roomId).emit('user-joined', { 
           userName, 
@@ -99,7 +86,7 @@ export const setupSocket = (server) => {
       }
     });
 
-    // Handle starting selection
+ 
     socket.on('start-selection', async (data, callback) => {
       try {
         const { roomId } = data;
@@ -110,19 +97,14 @@ export const setupSocket = (server) => {
 
         const roomData = await startSelection(roomId, socket.id);
         
-        console.log(`🎯 Selection started in room: ${roomId}`);
-        
         callback({ success: true });
 
-        // Notify all users that selection has started
         io.to(roomId).emit('selection-started', {
           turnOrder: roomData.turnOrder,
           currentPlayerIndex: roomData.currentPlayerIndex,
           currentPlayer: roomData.turnOrder[0],
           availablePlayers: roomData.availablePlayers
         });
-
-        // Start the first turn timer
         startTurnTimer(roomId, roomData.turnOrder[0]);
         
       } catch (error) {
@@ -131,7 +113,6 @@ export const setupSocket = (server) => {
       }
     });
 
-    // Handle player selection
     socket.on('select-player', async (data, callback) => {
       try {
         const { roomId, playerId } = data;
@@ -142,14 +123,11 @@ export const setupSocket = (server) => {
 
         const result = await selectPlayer(roomId, socket.id, playerId);
         
-        // Clear any existing timer for this room
         clearTurnTimer(roomId);
         
-        console.log(`⚡ Player selected in room ${roomId}: ${result.selectedPlayer.name}`);
-        
+      
         callback({ success: true });
 
-        // Notify all users about the selection
         io.to(roomId).emit('player-selected', {
           selectedPlayer: result.selectedPlayer,
           selectedBy: result.selectedBy,
@@ -159,7 +137,6 @@ export const setupSocket = (server) => {
           userTeams: result.userTeams
         });
 
-        // Check if selection is complete
         const isComplete = await checkSelectionComplete(roomId);
         if (isComplete.complete) {
           console.log(`🏆 Selection completed in room: ${roomId}`);
@@ -168,7 +145,6 @@ export const setupSocket = (server) => {
             message: 'Team selection completed!'
           });
         } else if (result.nextPlayer) {
-          // Start timer for next player
           startTurnTimer(roomId, result.nextPlayer);
         }
         
@@ -178,7 +154,7 @@ export const setupSocket = (server) => {
       }
     });
 
-    // Handle getting room details
+
     socket.on('get-room-details', async (data, callback) => {
       try {
         const { roomId } = data;
@@ -196,7 +172,7 @@ export const setupSocket = (server) => {
       }
     });
 
-    // Handle room sync request - helps fix state inconsistencies
+   
     socket.on('sync-room', async (data, callback) => {
       try {
         const { roomId } = data;
@@ -207,28 +183,25 @@ export const setupSocket = (server) => {
 
         const roomData = await getRoomDetails(roomId);
         
-        // Join the socket room if not already joined
+       
         if (!socket.rooms.has(roomId)) {
           await socket.join(roomId);
         }
         
         callback({ success: true, room: roomData });
-        
-        // Don't emit room-updated for sync requests to avoid spam notifications
-        // Only return the data in the callback
-        
+     
       } catch (error) {
         console.error('❌ Error syncing room:', error);
         callback({ success: false, error: error.message });
       }
     });
 
-    // Handle disconnection
+ 
     socket.on('disconnect', async () => {
       try {
         console.log(`👤 User disconnected: ${socket.id}`);
         
-        // Get all rooms this socket was in
+     
         const rooms = Array.from(socket.rooms).filter(room => room !== socket.id);
         
         for (const roomId of rooms) {
@@ -238,8 +211,6 @@ export const setupSocket = (server) => {
             
             if (disconnectedUser) {
               await removeUserFromRoom(roomId, socket.id);
-              
-              // Clear any timer for this user
               clearTurnTimer(roomId);
               
               // Notify other users
@@ -248,7 +219,6 @@ export const setupSocket = (server) => {
                 message: `${disconnectedUser.name} has left the room`
               });
 
-              // Get updated room data and notify remaining users
               const updatedRoom = await getRoomDetails(roomId);
               if (updatedRoom && updatedRoom.users.length > 0) {
                 console.log(`📢 Broadcasting disconnect update to room ${roomId}, remaining users: ${updatedRoom.users.length}`);
@@ -264,26 +234,22 @@ export const setupSocket = (server) => {
       }
     });
 
-    // Auto-selection timer functions
+  
     const startTurnTimer = (roomId, currentPlayer) => {
-      // Clear existing timer if any
+    
       clearTurnTimer(roomId);
       
-      console.log(`⏰ Starting 10s timer for ${currentPlayer.name} in room ${roomId}`);
-      
-      // Notify users about the timer
+   
       io.to(roomId).emit('turn-timer-started', {
         currentPlayer: currentPlayer,
-        timeLimit: 10000 // 10 seconds in milliseconds
+        timeLimit: 10000 // 10 seconds
       });
       
       const timer = setTimeout(async () => {
         try {
-          console.log(`⏰ Auto-selecting for ${currentPlayer.name} in room ${roomId}`);
-          
           const result = await autoSelectPlayer(roomId, currentPlayer.socketId);
           
-          // Notify all users about auto-selection
+    
           io.to(roomId).emit('auto-selected', {
             selectedPlayer: result.selectedPlayer,
             selectedBy: result.selectedBy,
@@ -294,7 +260,6 @@ export const setupSocket = (server) => {
             message: `Time's up! Auto-selected ${result.selectedPlayer.name} for ${currentPlayer.name}`
           });
 
-          // Check if selection is complete
           const isComplete = await checkSelectionComplete(roomId);
           if (isComplete.complete) {
             console.log(`🏆 Selection completed in room: ${roomId}`);
@@ -311,7 +276,7 @@ export const setupSocket = (server) => {
           console.error('❌ Error in auto-selection:', error);
           io.to(roomId).emit('error', { message: 'Error in auto-selection' });
         }
-      }, 10000); // 10 seconds
+      }, 10000); 
       
       selectionTimers.set(roomId, timer);
     };

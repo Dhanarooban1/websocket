@@ -4,16 +4,12 @@ import { io } from 'socket.io-client';
 // Components
 import LoadingScreen from './components/LoadingScreen';
 import WelcomeScreen from './components/WelcomeScreen';
-import Header from './components/Header';
+import GameRoom from './components/GameRoom';
+import SelectionComplete from './components/SelectionComplete';
 import NotificationSystem from './components/NotificationSystem';
-import RoomStatus from './components/RoomStatus';
-import PlayersList from './components/PlayersList';
-import TurnOrder from './components/TurnOrder';
-import AvailablePlayers from './components/AvailablePlayers';
-import TeamsDisplay from './components/TeamsDisplay';
 
-const SOCKET_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-
+const SOCKET_URL ='http://localhost:5000';
+  
 const App = () => {
   // Socket connection
   const [socket, setSocket] = useState(null);
@@ -70,6 +66,13 @@ const App = () => {
       const user = room.users.find(u => u.name === userName);
       if (user) {
         setCurrentUser({
+          name: user.name,
+          isHost: user.isHost,
+          socketId: user.socketId
+        });
+        
+        // Log for debugging
+        console.log('Current user updated:', {
           name: user.name,
           isHost: user.isHost,
           socketId: user.socketId
@@ -240,7 +243,7 @@ const App = () => {
         setRoom(response.room);
         setRoomId(response.roomId);
         setIsInRoom(true);
-        setCurrentUser({ name: userName, isHost: true });
+        // Don't manually set currentUser here - let the useEffect handle it from room data
         setNotification('Room created successfully!');
         setTimeout(() => setNotification(''), 3000);
       } else {
@@ -270,7 +273,7 @@ const App = () => {
       if (response.success) {
         setRoom(response.room);
         setIsInRoom(true);
-        setCurrentUser({ name: userName, isHost: false });
+        // Don't manually set currentUser here - let the useEffect handle it from room data
         setShowJoinRoom(false);
         setNotification('Joined room successfully!');
         setTimeout(() => setNotification(''), 3000);
@@ -293,6 +296,20 @@ const App = () => {
   const startSelection = () => {
     if (!socket || !room) return;
 
+    // Check if current user is the host
+    if (!currentUser?.isHost) {
+      setError('Only the host can start the selection');
+      setTimeout(() => setError(''), 5000);
+      return;
+    }
+
+    // Check if there are enough players
+    if (!room?.users || room.users.length < 2) {
+      setError('Need at least 2 players to start selection');
+      setTimeout(() => setError(''), 5000);
+      return;
+    }
+
     setLoading(true);
     socket.emit('start-selection', { roomId: room.id }, (response) => {
       setLoading(false);
@@ -306,6 +323,37 @@ const App = () => {
   const selectPlayer = (playerId) => {
     if (!socket || !room || !isMyTurn) return;
 
+    // Optimistic update - immediately update the UI
+    const selectedPlayer = availablePlayers.find(p => p.id === playerId);
+    if (selectedPlayer) {
+      // Remove player from available list immediately
+      setAvailablePlayers(prev => prev.filter(p => p.id !== playerId));
+      
+      // Update current user's team immediately
+      setUserTeams(prev => {
+        const updated = prev.map(user => {
+          if (user.name === currentUser.name) {
+            return {
+              ...user,
+              team: [...(user.team || []), selectedPlayer]
+            };
+          }
+          return user;
+        });
+        
+        // If user doesn't exist in userTeams yet, add them
+        if (!updated.find(u => u.name === currentUser.name)) {
+          updated.push({
+            name: currentUser.name,
+            isHost: currentUser.isHost,
+            team: [selectedPlayer]
+          });
+        }
+        
+        return updated;
+      });
+    }
+
     socket.emit('select-player', { 
       roomId: room.id, 
       playerId 
@@ -313,8 +361,33 @@ const App = () => {
       if (!response.success) {
         setError(response.error);
         setTimeout(() => setError(''), 5000);
+        
+        // If there's an error, we should revert the optimistic update
+        // The server will send the correct state anyway, so we don't need to do anything here
       }
     });
+  };
+
+  const leaveRoom = () => {
+    if (socket && room) {
+      socket.emit('leave-room');
+      setIsInRoom(false);
+      setRoom(null);
+      setGameStatus('waiting');
+      setTurnOrder([]);
+      setCurrentPlayerIndex(0);
+      setAvailablePlayers([]);
+      setUserTeams([]);
+      setFinalTeams([]);
+      setTimeLeft(0);
+      setIsMyTurn(false);
+      setNotification('Left room successfully');
+      setTimeout(() => setNotification(''), 3000);
+    }
+  };
+
+  const backToHome = () => {
+    leaveRoom();
   };
 
   // Helper functions
@@ -330,8 +403,6 @@ const App = () => {
       setError('');
     }
   };
-
-  const currentPlayer = getCurrentPlayer();
 
   // Render loading screen
   if (loading) {
@@ -358,14 +429,7 @@ const App = () => {
 
   // Render game screen
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
-      {/* Header */}
-      <Header
-        room={room}
-        currentUser={currentUser}
-        isConnected={isConnected}
-      />
-
+    <>
       {/* Notifications */}
       <NotificationSystem
         notification={notification}
@@ -373,57 +437,30 @@ const App = () => {
         onClose={handleNotificationClose}
       />
 
-      <div className="max-w-7xl mx-auto p-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Panel - Room Info & Users */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Room Status */}
-            <RoomStatus
-              room={room}
-              gameStatus={gameStatus}
-              currentPlayer={currentPlayer}
-              timeLeft={timeLeft}
-              isMyTurn={isMyTurn}
-              currentUser={currentUser}
-              onStartSelection={startSelection}
-            />
-
-            {/* Players List */}
-            <PlayersList users={room?.users || []} />
-
-            {/* Turn Order */}
-            {gameStatus === 'selecting' && (
-              <TurnOrder
-                turnOrder={turnOrder}
-                currentPlayerIndex={currentPlayerIndex}
-              />
-            )}
-          </div>
-
-          {/* Middle Panel - Available Players */}
-          {gameStatus === 'selecting' && (
-            <div className="lg:col-span-1">
-              <AvailablePlayers
-                players={availablePlayers}
-                onSelectPlayer={selectPlayer}
-                isMyTurn={isMyTurn}
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-              />
-            </div>
-          )}
-
-          {/* Right Panel - Teams */}
-          <div className="lg:col-span-1">
-            <TeamsDisplay
-              teams={gameStatus === 'completed' ? finalTeams : userTeams}
-              gameStatus={gameStatus}
-              currentUser={currentUser}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+      {gameStatus === 'completed' ? (
+        <SelectionComplete
+          finalTeams={finalTeams}
+          currentUser={currentUser}
+          onBackToHome={backToHome}
+        />
+      ) : (
+        <GameRoom
+          room={room}
+          currentUser={currentUser}
+          availablePlayers={availablePlayers}
+          onSelectPlayer={selectPlayer}
+          isMyTurn={isMyTurn}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          gameStatus={gameStatus}
+          onLeaveRoom={leaveRoom}
+          onStartSelection={startSelection}
+          timeLeft={timeLeft}
+          currentPlayer={getCurrentPlayer()}
+          userTeams={userTeams}
+        />
+      )}
+    </>
   );
 };
 

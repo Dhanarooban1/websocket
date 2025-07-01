@@ -7,7 +7,7 @@ A **real-time multiplayer backend** built with **Express.js** and **Socket.IO** 
 This backend implements a complete real-time room system where:
 - ✅ Users can **create or join rooms**
 - ✅ **Host controls** game start
-- ✅ **Random turn order** generation
+- ✅ **Host-first turn order** with randomized others
 - ✅ **10-second selection timer** per turn
 - ✅ **Auto-selection** on timeout
 - ✅ **Real-time updates** to all users
@@ -160,7 +160,7 @@ GET /api/players/top/:count   # Get top players by rating
 ### **✅ Turn Handling**
 - 10-second timer implementation
 - Auto-selection mechanism
-- Turn order randomization
+- Host-first turn order with randomized others
 - Round completion detection
 
 ### **✅ Event-based Architecture**

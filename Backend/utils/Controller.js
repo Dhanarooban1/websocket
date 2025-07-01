@@ -190,8 +190,13 @@ export const startSelection = async (roomId, hostSocketId) => {
       throw new Error('Selection already in progress');
     }
 
-    // Generate random turn order
-    room.turnOrder = shuffleArray([...room.users]);
+    // Generate turn order with host always first
+    const hostUser = room.users.find(u => u.isHost);
+    const otherUsers = room.users.filter(u => !u.isHost);
+    const shuffledOthers = shuffleArray(otherUsers);
+    
+    // Host is always first, followed by shuffled others
+    room.turnOrder = [hostUser, ...shuffledOthers];
     room.currentPlayerIndex = 0;
     room.status = 'selecting';
     room.updatedAt = Date.now();
@@ -422,13 +427,33 @@ export const removeUserFromRoom = async (roomId, userSocketId) => {
     if (room.status === 'selecting') {
       const disconnectedUserIndex = room.turnOrder.findIndex(user => user.socketId === userSocketId);
       if (disconnectedUserIndex !== -1) {
+        const wasHost = room.turnOrder[disconnectedUserIndex].isHost;
         room.turnOrder.splice(disconnectedUserIndex, 1);
+        
+        // If the disconnected user was the host and we have a new host, reorganize turn order
+        if (wasHost && room.users.length > 0) {
+          // Find the new host in the turn order
+          const newHostIndex = room.turnOrder.findIndex(user => user.isHost);
+          if (newHostIndex > 0) {
+            // Move the new host to the front
+            const newHost = room.turnOrder.splice(newHostIndex, 1)[0];
+            room.turnOrder.unshift(newHost);
+            
+            // Adjust current player index since we moved the host to front
+            if (room.currentPlayerIndex > newHostIndex) {
+              // Current player index stays the same since we removed someone before
+            } else if (room.currentPlayerIndex <= newHostIndex) {
+              // Current player index shifts by +1 since we added host at front
+              room.currentPlayerIndex++;
+            }
+          }
+        }
         
         // Adjust current player index if necessary
         if (room.currentPlayerIndex >= room.turnOrder.length) {
           room.currentPlayerIndex = 0;
         }
-        if (room.currentPlayerIndex > disconnectedUserIndex) {
+        if (room.currentPlayerIndex > disconnectedUserIndex && !wasHost) {
           room.currentPlayerIndex--;
         }
       }
