@@ -2,19 +2,28 @@ import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import Redis from 'ioredis';
 
 import { errorHandler } from './middleware/responseHandler.js';
-import asyncHandler from './middleware/asyncHandler.js';
-import { getServerInfo } from './controllers/systemController.js';
 
-import { setupSocket } from './socket/socketHandler.js';
-import apiRoutes from './routes/api.js';
+import { setupSocket } from './socket/socketController.js';
 
-// Load environment variables
+
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+
+const Redisclient = new Redis({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: parseInt(process.env.REDIS_PORT) || 6379,
+  username: process.env.REDIS_USERNAME || 'default',
+  password: process.env.REDIS_PASSWORD,
+});
+
+Redisclient.on('connect', () => console.log('✅ Redis connected'));
+Redisclient.on('error', (err) => console.error('❌ Redis error:', err));
+
 
 // Middleware
 app.use(cors({
@@ -26,30 +35,22 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  next();
-});
+
 
 // API Routes
-app.use('/api', apiRoutes);
 
-// Root endpoint
-app.get('/', asyncHandler(getServerInfo));
+app.get('/', (req, res) => {
+  res.json({
+    status: 'success',
+    message: 'Welcome to the Cricket Team Selection API'
+  });
+});
 
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ 
     status: 'error',
-    message: `Route ${req.method} ${req.path} not found`,
-    availableRoutes: {
-      'GET /': 'Server information',
-      'GET /api/health': 'Health check',
-      'GET /api/rooms': 'List all rooms',
-      'GET /api/players': 'Get all players',
-      'WebSocket': 'Real-time game events'
-    }
+    message: `Route ${req.method} ${req.path} not found`
   });
 });
 
@@ -60,38 +61,29 @@ app.use(errorHandler);
 const io = setupSocket(server);
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('🛑 SIGTERM received, shutting down gracefully');
+const gracefulShutdown = (signal) => {
+  console.log(`🛑 ${signal} received, shutting down gracefully`);
   server.close(() => {
     console.log('💤 Process terminated');
     process.exit(0);
   });
-});
+};
 
-process.on('SIGINT', () => {
-  console.log('🛑 SIGINT received, shutting down gracefully');
-  server.close(() => {
-    console.log('💤 Process terminated');
-    process.exit(0);
-  });
-});
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Start server
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || 'localhost';
 
 server.listen(PORT, () => {
-  console.log('🏏 ===============================================');
   console.log('🚀 Cricket Team Selection Backend Started!');
-  console.log('🏏 ===============================================');
-  console.log(`� Server: http://${HOST}:${PORT}`);
+  console.log(`🚀 Server: http://${HOST}:${PORT}`);
   console.log(`🔌 Socket.IO: WebSocket connections enabled`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📊 API Documentation:`);
-  console.log(`   - Health Check: http://${HOST}:${PORT}/api/health`);
-  console.log(`   - Rooms API: http://${HOST}:${PORT}/api/rooms`);
-  console.log(`   - Players API: http://${HOST}:${PORT}/api/players`);
-  console.log('🏏 ===============================================');
+  
+  // Start cleanup interval - run every 10 minutes
+  console.log('🧹 Room cleanup service started');
 });
 
-export { app, server, io };
+export { app, server, io , Redisclient }; // Export Redis client for use in other modules
