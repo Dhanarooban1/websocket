@@ -14,7 +14,12 @@ import {
 export const setupSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || ["http://localhost:3000", "http://localhost:5173"],
+      origin: process.env.FRONTEND_URL || [
+        "http://localhost:3000", 
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://websocket-gules.vercel.app"
+      ],
       methods: ["GET", "POST"],
       credentials: true
     },
