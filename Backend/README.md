@@ -38,7 +38,6 @@ Backend/
 │   ├── roomManager.js        # Room management service
 │   └── playerPool.js         # Cricket players data
 └── middleware/
-    ├── asyncHandler.js       # Async error handling
     └── responseHandler.js    # Response formatting
 ```
 
