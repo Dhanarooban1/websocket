@@ -12,7 +12,7 @@ import TurnOrder from './components/TurnOrder';
 import AvailablePlayers from './components/AvailablePlayers';
 import TeamsDisplay from './components/TeamsDisplay';
 
-const SOCKET_URL = 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const App = () => {
   // Socket connection
