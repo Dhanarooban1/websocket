@@ -44,6 +44,14 @@ const App = () => {
   const [showJoinRoom, setShowJoinRoom] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Timer cleanup helper function
+  const clearTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
   // Add periodic room sync effect
   useEffect(() => {
     if (socket && room && isInRoom) {
@@ -144,19 +152,13 @@ const App = () => {
 
     newSocket.on('turn-timer-started', (data) => {
       // Start timer inline to avoid dependency issues
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
+      clearTimer();
       setTimeLeft(10);
       
       timerRef.current = setInterval(() => {
         setTimeLeft(prev => {
           if (prev <= 1) {
-            if (timerRef.current) {
-              clearInterval(timerRef.current);
-              timerRef.current = null;
-            }
+            clearTimer();
             setIsMyTurn(false);
             return 0;
           }
@@ -175,10 +177,7 @@ const App = () => {
       setNotification(`${data.selectedBy} selected ${data.selectedPlayer.name}`);
       setTimeout(() => setNotification(''), 3000);
       // Stop timer inline
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
+      clearTimer();
       setTimeLeft(0);
       setIsMyTurn(false);
     });
@@ -190,10 +189,7 @@ const App = () => {
       setNotification(data.message);
       setTimeout(() => setNotification(''), 5000);
       // Stop timer inline
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
+      clearTimer();
       setTimeLeft(0);
       setIsMyTurn(false);
     });
@@ -203,10 +199,7 @@ const App = () => {
       setFinalTeams(data.finalTeams);
       setNotification(data.message);
       // Stop timer inline
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
+      clearTimer();
       setTimeLeft(0);
       setIsMyTurn(false);
     });
@@ -217,9 +210,7 @@ const App = () => {
     });
 
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
+      clearTimer();
       newSocket.close();
     };
   }, []); // Removed userName dependency to prevent socket reconnection on every keystroke
