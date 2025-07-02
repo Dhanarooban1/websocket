@@ -139,21 +139,21 @@ src/
 - `turnAdvanced` - Turn progression
 - `gameCompleted` - Final results
 
-### 🛠 Tech Stack
+## 🛠 Tech Stack
 
-## Frontend
+### Frontend
 - **React 18** with Vite
 - **Socket.IO Client** for real-time communication
 - **Tailwind CSS** for responsive styling
 - **Modern React Hooks** for state management
 
-## Backend
+### Backend
 - **Node.js & Express.js** server
 - **Socket.IO** for WebSocket connections
 - **Redis** for session storage and caching
 - **RESTful API** architecture
 
-## Deployment
+### Deployment
 - **Frontend**: Vercel
 - **Backend**: Render
 - **Database**: Redis Cloud
