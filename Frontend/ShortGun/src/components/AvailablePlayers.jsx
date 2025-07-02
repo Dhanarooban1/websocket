@@ -66,13 +66,13 @@ const AvailablePlayers = ({ players = [], onSelectPlayer, isMyTurn, searchTerm, 
                 : 'border-gray-200 cursor-not-allowed opacity-60'
             } ${player.name === 'Virat Kohli' ? 'border-green-400 shadow-md' : ''}`}
           >
-            {/* Header section with fixed height */}
+            
             <div className="flex justify-between items-start mb-3 min-h-[40px]">
               <h4 className="font-bold text-gray-800 text-sm leading-tight">{player.name}</h4>
               <span className="text-sm font-bold text-gray-600 ml-2 flex-shrink-0">{getCountryCode(player.country)}</span>
             </div>
             
-            {/* Role section with fixed height */}
+          
             <div className="mb-3 min-h-[28px] flex items-start">
               <span className={`px-2 py-1 text-xs font-medium rounded ${getRoleColor(player.role)}`}>
                 {player.role}

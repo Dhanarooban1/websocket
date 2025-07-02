@@ -72,21 +72,21 @@ export const joinRoom = async (roomId, userName, userSocketId) => {
       throw new Error('Cannot join room - selection has ended');
     }
 
-    // Check if user is already in room by name (allow same user to rejoin with new socket)
+    // Check if username is already taken by a different user
     const existingUserIndex = room.users.findIndex(user => 
       user.name.toLowerCase() === userName.toLowerCase()
     );
     
     if (existingUserIndex !== -1) {
-      // Update the existing user's socket ID (handling reconnection)
-      room.users[existingUserIndex].socketId = userSocketId;
+      const existingUser = room.users[existingUserIndex];
       
-      // If this user is the host, update the host socket ID too
-      if (room.users[existingUserIndex].isHost) {
-        room.host.socketId = userSocketId;
+      // If it's the same socket trying to reconnect, allow it
+      if (existingUser.socketId === userSocketId) {
+        console.log(`✅ User ${userName} reconnected to room: ${roomId}`);
+      } else {
+        // Different user with same name - reject
+        throw new Error(`Username "${userName}" is already taken. Please choose a different name.`);
       }
-      
-      console.log(`✅ User ${userName} reconnected to room: ${roomId}`);
     } else {
       // Check room capacity (max 6 users for this example)
       if (room.users.length >= 6) {

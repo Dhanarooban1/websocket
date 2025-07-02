@@ -287,7 +287,13 @@ const App = () => {
           });
         }, 500);
       } else {
-        setError(response.error);
+        // Check if it's a username taken error
+        if (response.error && response.error.includes('already taken')) {
+          setError(response.error);
+          setUserName(''); // Clear the username so user can enter a new one
+        } else {
+          setError(response.error);
+        }
         setTimeout(() => setError(''), 5000);
       }
     });

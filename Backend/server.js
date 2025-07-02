@@ -42,8 +42,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 
 
-// API Routes
-
 app.get('/', (req, res) => {
   res.json({
     status: 'success',
@@ -91,4 +89,4 @@ server.listen(PORT, () => {
   console.log('🧹 Room cleanup service started');
 });
 
-export { app, server, io , Redisclient }; // Export Redis client for use in other modules
+export { app, server, io , Redisclient }; 
