@@ -2,6 +2,68 @@
 
 A real-time multiplayer cricket team selection application built with React, Socket.IO, and Tailwind CSS.
 
+![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-brightgreen?style=for-the-badge&logo=vercel)
+![Backend](https://img.shields.io/badge/Backend-Render-blue?style=for-the-badge&logo=render)
+**🔗 Live Application:** [https://websocket-gules.vercel.app](https://websocket-gules.vercel.app)
+
+## 🎮 Game Overview
+
+Players create or join rooms and take turns selecting from a pool of 30 professional cricket players. Each player has 10 seconds to make their choice, or a random player will be auto-selected. Build a balanced team of 5 players and compete with friends!
+
+## ✨ Key Technical Features
+
+### 🔄 Real-time Communication
+- **Socket.IO** for bidirectional real-time communication
+- Instant updates across all connected clients
+- Live room status and player selection broadcasting
+
+```javascript
+// Real-time player selection updates
+socket.on('playerSelected', ({ playerId, playerData, updatedRoom }) => {
+  // Instant UI updates for all players in the room
+});
+```
+
+### 👥 Multi-user Synchronization
+- **Redis-powered state management** for consistent game state
+- Synchronized room updates across multiple users
+- Persistent session handling
+
+```javascript
+// Synchronized room state management
+const updateRoomInRedis = async (roomId, roomData) => {
+  await redisClient.set(`room:${roomId}`, JSON.stringify(roomData));
+  io.to(roomId).emit('roomUpdate', roomData);
+};
+```
+
+### ⏱️ Turn Handling
+- **10-second turn timer** with visual countdown
+- Automatic turn progression system
+- Auto-selection fallback mechanism
+
+```javascript
+// Sophisticated turn management
+const advanceTurn = (room) => {
+  const currentIndex = room.players.findIndex(p => p.id === room.currentTurn);
+  const nextIndex = (currentIndex + 1) % room.players.length;
+  room.currentTurn = room.players[nextIndex].id;
+};
+```
+
+
+### 🏗️ Event-based Architecture
+- Comprehensive event system for all game interactions
+- Clean separation of concerns
+- Robust error handling and recovery
+
+```javascript
+// Event-driven game flow
+socket.on('gameStarted', handleGameStart);
+socket.on('turnAdvanced', handleTurnAdvance);
+socket.on('gameCompleted', handleGameCompletion);
+```
+
 ## 🚀 Features
 
 - **Real-time Multiplayer**: Join rooms and see updates in real-time
@@ -11,8 +73,68 @@ A real-time multiplayer cricket team selection application built with React, Soc
 - **Live Updates**: Real-time notifications and game state updates
 - **Team Building**: Each player builds a team of 5 cricket players
 - **Role-based Players**: Batsmen, Bowlers, All-rounders, and Wicket-keepers
-- **Search Functionality**: Search through available players
-- **Team Scoring**: Points-based team evaluation at the end
+
+
+## 📁 Project Structure
+
+### Backend Structure
+
+websocket/
+├── Backend/
+├── middleware/
+│   └── responseHandler.js      # Response handling middleware
+├── node_modules/               # Dependencies
+├── socket/
+│   └── socketController.js     # Socket.IO event handlers
+├── utils/
+│   ├── Controllers.js          # Main controller logic
+│   └── playerPool.js           # Cricket players database
+├── .env                        # Environment variables
+├── .gitignore                  # Git ignore rules
+├── package-lock.json           # Locked dependency versions
+├── package.json                # Dependencies and scripts
+└── server.js                   # Main server entry point
+
+
+### Frontend Structure
+```
+src/
+├── components/
+│   ├── AvailablePlayers.jsx    # Player selection interface
+│   ├── ConnectionStatus.jsx     # Connection indicator
+│   ├── Header.jsx              # App header
+│   ├── LoadingScreen.jsx       # Loading component
+│   ├── NotificationSystem.jsx  # Alerts and notifications
+│   ├── PlayersList.jsx         # Room participants list
+│   ├── RoomStatus.jsx          # Room information panel
+│   ├── TeamsDisplay.jsx        # Teams and final results
+│   ├── TurnOrder.jsx           # Turn sequence display
+│   ├── TurnTimer.jsx           # Selection timer
+│   └── WelcomeScreen.jsx       # Landing page
+├── App.jsx                     # Main application component
+├── main.jsx                    # Application entry point
+├── index.css                   # Global styles and animations
+└── App.css                     # Component-specific styles
+```
+
+
+## 🔧 API Endpoints
+
+### Socket Events
+
+#### Client → Server
+- `createRoom` - Create new game room
+- `joinRoom` - Join existing room
+- `startGame` - Begin player selection
+- `selectPlayer` - Pick a cricket player
+- `disconnect` - Handle player leaving
+
+#### Server → Client
+- `roomUpdate` - Live room state changes
+- `gameStarted` - Game initialization
+- `playerSelected` - Player pick notifications
+- `turnAdvanced` - Turn progression
+- `gameCompleted` - Final results
 
 ## 🛠 Tech Stack
 
@@ -64,128 +186,11 @@ The application will be available at `http://localhost:5173`
 4. Continue until each player has 5 players
 5. View final teams and scores
 
-## 🏗 Project Structure
-
-```
-src/
-├── components/
-│   ├── AvailablePlayers.jsx    # Player selection interface
-│   ├── ConnectionStatus.jsx     # Connection indicator
-│   ├── Header.jsx              # App header
-│   ├── LoadingScreen.jsx       # Loading component
-│   ├── NotificationSystem.jsx  # Alerts and notifications
-│   ├── PlayersList.jsx         # Room participants list
-│   ├── RoomStatus.jsx          # Room information panel
-│   ├── TeamsDisplay.jsx        # Teams and final results
-│   ├── TurnOrder.jsx           # Turn sequence display
-│   ├── TurnTimer.jsx           # Selection timer
-│   └── WelcomeScreen.jsx       # Landing page
-├── App.jsx                     # Main application component
-├── main.jsx                    # Application entry point
-├── index.css                   # Global styles and animations
-└── App.css                     # Component-specific styles
-```
-
-## 🎨 Components Overview
-
-### Core Components
-
-- **App.jsx**: Main application logic and state management
-- **WelcomeScreen**: Initial screen for creating/joining rooms
-- **Header**: Navigation bar with room info and user details
-- **LoadingScreen**: Loading states and transitions
-
-### Game Components
-
-- **RoomStatus**: Displays room information, player count, and game status
-- **PlayersList**: Shows all participants in the room
-- **TurnOrder**: Displays the randomized turn sequence
-- **AvailablePlayers**: Interactive player selection interface
-- **TeamsDisplay**: Shows current teams and final results
-- **TurnTimer**: 10-second countdown timer for each turn
-
-### UI Components
-
-- **ConnectionStatus**: Socket connection indicator
-- **NotificationSystem**: Toast notifications and error handling
-
-## 🎯 Game Features
-
-### Player Pool
-- 30 cricket players from various countries
-- 4 role types: Batsman, Bowler, All-rounder, Wicket-keeper
-- Players from India, Pakistan, Australia, England, New Zealand, South Africa, Afghanistan, Bangladesh
-
-### Team Building
-- Each player builds a team of exactly 5 players
-- No role restrictions (can pick any combination)
-- Real-time team updates visible to all players
-
-### Scoring System
-- Batsman: 2 points
-- Bowler: 2 points  
-- All-rounder: 3 points
-- Wicket-keeper: 2 points
-- Teams ranked by total points at the end
-
-### Timer System
-- 10-second timer per turn
-- Visual countdown with progress bar
-- Auto-selection if time expires
-- Clear turn indicators
-
-## 🔄 Real-time Events
-
-The app listens to these Socket.IO events:
-
-- `room-updated`: Room state changes
-- `user-joined`: New player joined
-- `user-disconnected`: Player left
-- `selection-started`: Game begins
-- `turn-timer-started`: Timer starts for current player
-- `player-selected`: Player manually selected
-- `auto-selected`: Player auto-selected due to timeout
-- `selection-ended`: All teams complete
-
-## 🎨 Styling & Animations
-
-### Custom Animations
-- Fade-in effects for new elements
-- Shake animation for errors
-- Hover effects for interactive elements
-- Progress bars and loading spinners
-- Team completion celebrations
-
-### Responsive Design
-- Mobile-first approach
-- Responsive grid layouts
-- Touch-friendly interactions
-- Optimized for various screen sizes
-
-## 🚨 Error Handling
-
-- Connection status monitoring
-- Graceful error messages
-- Auto-retry for failed operations
-- User-friendly error notifications
-- Validation for user inputs
-
-## 📱 Browser Support
-
-- Chrome 80+
-- Firefox 75+
-- Safari 13+
-- Edge 80+
 
 ## 🔧 Configuration
 
 ### Environment Variables
 The app connects to the backend at `http://localhost:5000` by default. To change this, update the `SOCKET_URL` constant in `App.jsx`.
-
-### Build Configuration
-- Vite configuration in `vite.config.js`
-- Tailwind configuration in `tailwind.config.js`
-- ESLint configuration in `eslint.config.js`
 
 ## 🚀 Deployment
 
@@ -204,31 +209,10 @@ npm run build
 npm run preview
 ```
 
-## 🐛 Common Issues
-
-### Connection Issues
-- Ensure the backend server is running on port 5000
-- Check if WebSocket connections are allowed
-- Verify CORS settings match frontend URL
-
-### Timer Issues
-- Timer automatically stops when component unmounts
-- Manual timer cleanup in useEffect cleanup function
-- Timer state synced across all clients
-
-### Room Issues
-- Room IDs are case-insensitive
-- Maximum 6 players per room
-- Rooms auto-expire after 2 hours
-
-## 🤝 Contributing
-
-1. Follow the existing code structure
-2. Use PropTypes for component validation
-3. Maintain responsive design principles
-4. Add appropriate error handling
-5. Include loading states for async operations
-
 ## 📄 License
 
 This project is part of an interview assignment and is for demonstration purposes.
+
+**Built with ❤️ for cricket fans and real-time gaming enthusiasts!**
+
+🔗 **Live Demo**: [https://websocket-gules.vercel.app](https://websocket-gules.vercel.app)
