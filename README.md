@@ -2,11 +2,12 @@
 
 A real-time multiplayer cricket team selection application built with React, Socket.IO, and Tailwind CSS.
 
-**🔗 Live Application:** [https://websocket-gules.vercel.app](https://websocket-gules.vercel.app)
+**🔗 Live Application:** (https://websocket-gules.vercel.app)
 
-**🔗 Demo Video:** [Demo Video](https://drive.google.com/file/d/1TUeZWlBYyeus2S8-73-K2BHcMf4---ne/view?usp=sharing)
+**🔗 Backend Link:** (https://websocket-gules.vercel.app)
 
-![Backend](https://img.shields.io/badge/Backend-Render-blue?style=for-the-badge&logo=render)
+**🔗 Demo Video:** (https://drive.google.com/file/d/1TUeZWlBYyeus2S8-73-K2BHcMf4---ne/view?usp=sharing)
+
 
 ## 🎮 Game Overview
 
@@ -138,14 +139,24 @@ src/
 - `turnAdvanced` - Turn progression
 - `gameCompleted` - Final results
 
-## 🛠 Tech Stack
+### 🛠 Tech Stack
 
-- **React 18** - Frontend framework
-- **Socket.IO Client** - Real-time communication
-- **Tailwind CSS** - Styling and responsive design
-- **Lucide React** - Icons
-- **Vite** - Build tool and dev server
-- **PropTypes** - Runtime type checking
+## Frontend
+- **React 18** with Vite
+- **Socket.IO Client** for real-time communication
+- **Tailwind CSS** for responsive styling
+- **Modern React Hooks** for state management
+
+## Backend
+- **Node.js & Express.js** server
+- **Socket.IO** for WebSocket connections
+- **Redis** for session storage and caching
+- **RESTful API** architecture
+
+## Deployment
+- **Frontend**: Vercel
+- **Backend**: Render
+- **Database**: Redis Cloud
 
 ## 📦 Installation
 
