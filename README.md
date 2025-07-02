@@ -2,12 +2,11 @@
 
 A real-time multiplayer cricket team selection application built with React, Socket.IO, and Tailwind CSS.
 
-![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-brightgreen?style=for-the-badge&logo=vercel)
+**🔗 Live Application:** [https://websocket-gules.vercel.app](https://websocket-gules.vercel.app)
 
 ![Backend](https://img.shields.io/badge/Backend-Render-blue?style=for-the-badge&logo=render)
 
-**🔗 Live Application:** [https://websocket-gules.vercel.app](https://websocket-gules.vercel.app)
-
+![Demo Video](https://drive.google.com/file/d/1TUeZWlBYyeus2S8-73-K2BHcMf4---ne/view?usp=sharing)
 
 ## 🎮 Game Overview
 
