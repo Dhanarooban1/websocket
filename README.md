@@ -3,8 +3,11 @@
 A real-time multiplayer cricket team selection application built with React, Socket.IO, and Tailwind CSS.
 
 ![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-brightgreen?style=for-the-badge&logo=vercel)
+
 ![Backend](https://img.shields.io/badge/Backend-Render-blue?style=for-the-badge&logo=render)
+
 **🔗 Live Application:** [https://websocket-gules.vercel.app](https://websocket-gules.vercel.app)
+
 
 ## 🎮 Game Overview
 
@@ -78,7 +81,7 @@ socket.on('gameCompleted', handleGameCompletion);
 ## 📁 Project Structure
 
 ### Backend Structure
-
+```
 websocket/
 ├── Backend/
 ├── middleware/
@@ -94,7 +97,7 @@ websocket/
 ├── package-lock.json           # Locked dependency versions
 ├── package.json                # Dependencies and scripts
 └── server.js                   # Main server entry point
-
+```
 
 ### Frontend Structure
 ```
